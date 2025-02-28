@@ -1,13 +1,19 @@
 package com.headout.globetrotter.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "Place")
 public class Place {
 
@@ -19,14 +25,18 @@ public class Place {
     private String name;
 
     @OneToMany(mappedBy = "place")
-    private List<Clues> clues;
+    public List<Clues> clues;
 
     @OneToMany(mappedBy = "place")
-    private List<Facts> facts;
+    public List<Facts> facts;
 
     @OneToMany(mappedBy = "place")
-    private List<UserGuesses> userGuesses;
+    public List<UserGuesses> userGuesses;
 
     @OneToMany(mappedBy = "guessedPlace")
-    private List<UserGuesses> guessedPlaces;
+    public List<UserGuesses> guessedPlaces;
+
+    public Place(Integer id) {
+        this.id = id;
+    }
 }
