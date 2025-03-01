@@ -1,7 +1,7 @@
 -- Insert 15 dummy users into the Users table with metadata columns
 INSERT INTO users (id, username, email, password, score, created_at, updated_at, created_by) VALUES
-(1, 'Spiderman', 'password123', 12, NOW(), NOW(), 'admin'),
-(2, 'TonyStark', 'iamironman', 27, NOW(), NOW(), 'admin'),
+(1, 'Spiderman', 'spidey@globetrotter.com', 'password123', 12, NOW(), NOW(), 'admin'),
+(2, 'TonyStark', 'tonyatwork@globetrotter.com' ,'iamironman', 27, NOW(), NOW(), 'admin'),
 (3, 'DoctorStrange', 'doctorstrange@globetrotter.com', 'slingring', 81, NOW(), NOW(), 'admin'),
 (4, 'Deadpool', 'deadpool@globetrotter.com', 'chimichangas', 45, NOW(), NOW(), 'admin'),
 (5, 'Wolverine', 'wolverine@globetrotter.com', 'healingfactor', 27, NOW(), NOW(), 'admin'),
