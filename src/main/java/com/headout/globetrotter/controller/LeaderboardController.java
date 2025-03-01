@@ -23,7 +23,7 @@ public class LeaderboardController {
     public ResponseEntity<List<Leaderboard>> getTopUsers(@RequestParam(defaultValue = "10") int limit) {
         try{
 
-            log.info("Leaderboard to get top {} users" ,limit );
+            log.info("Leaderboard to get top users" );
 
             return ResponseEntity.ok(leaderboardService.getTopUsers(limit));
         } catch (Exception e) {
