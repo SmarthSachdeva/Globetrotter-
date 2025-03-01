@@ -38,15 +38,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow only specific frontend origins for security
-        configuration.setAllowedOrigins(List.of(
-                "https://globe-trotter-fe-ornd-git-main-smarth-sachdevas-projects.vercel.app",
-                "*"
-        ));
+
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowCredentials(false);
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // Allow credentials (cookies, authorization headers, etc.)
+
+        // You might also want to add these for more complete CORS support
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
