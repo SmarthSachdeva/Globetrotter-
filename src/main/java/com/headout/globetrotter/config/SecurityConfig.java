@@ -2,7 +2,7 @@ package com.headout.globetrotter.config;
 
 import com.headout.globetrotter.jwt.AuthEntryPointJwt;
 import com.headout.globetrotter.jwt.AuthTokenFilter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,13 +19,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final AuthEntryPointJwt authEntryPointJwt;
-    private final AuthTokenFilter authTokenFilter;
+    @Autowired
+    private  AuthEntryPointJwt authEntryPointJwt;
+
+    @Autowired
+    private AuthTokenFilter authTokenFilter;
 
     // Password encoder for encoding passwords
     @Bean
@@ -37,15 +39,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "*"));  // Allow Vite frontend URL and all origins for testing
+        // Allow all origins for now (you can replace "*" with your frontend URL when deploying to production)
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // Allow credentials (cookies, authorization headers, etc.)
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     // Security Filter Chain configuration
     @Bean
@@ -54,8 +56,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF protection
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/v1/users/*", "/api/auth/**").permitAll() // Allow public access to these endpoints
-                                .anyRequest().authenticated() // Any other request should be authenticated
+                                // Permit all for login and other public APIs
+                                .requestMatchers("/api/v1/users/login", "/api/v1/users/signup", "/api/auth/**").permitAll()
+                                // Secure the rest of the APIs, requiring authentication
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.authenticationEntryPoint(authEntryPointJwt) // Custom entry point for unauthorized access
