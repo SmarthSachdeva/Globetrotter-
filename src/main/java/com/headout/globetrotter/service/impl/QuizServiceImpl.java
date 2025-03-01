@@ -47,14 +47,14 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Question getQuizQuestion() {
-
-        try{
+        try {
             log.info("Fetching question initiated");
-            Clues clue = clueRepository.findRandomClue();
 
+            Clues clue = clueRepository.findRandomClue();
             if (clue == null) {
                 throw new RuntimeException("Clue not found");
             }
+
             // Fetch the correct place
             Place correctPlace = clue.getPlace();
 
@@ -63,7 +63,6 @@ public class QuizServiceImpl implements QuizService {
 
             // Prepare options
             List<Options> options = new ArrayList<>();
-
             options.add(Options.builder()
                     .id(correctPlace.getId())
                     .name(correctPlace.getName())
@@ -81,11 +80,11 @@ public class QuizServiceImpl implements QuizService {
             // Shuffle options to randomize order
             Collections.shuffle(options);
 
-            return new Question(clue.getClue(), options);
+            return new Question(clue.getId(), clue.getClue(), options); // Include clueId
 
         } catch (Exception e) {
-            log.error("Error");
-            throw new RuntimeException(e);
+            log.error("Error fetching quiz question", e);
+            throw new RuntimeException("Failed to fetch quiz question", e);
         }
     }
 
@@ -93,7 +92,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public AnswerWithScore submitAnswer(AnswerSubmission submission) {
         try {
-            log.info("****************Processing submission for user: {} and clue: {}", authTokenFilter.userSessionDetails() , submission.getClueId());
+            log.info("Processing submission for user: {} and clue: {}", authTokenFilter.userSessionDetails(), submission.getClueId());
 
             // Fetch clue
             Clues clue = clueRepository.findById(submission.getClueId())
@@ -114,12 +113,12 @@ public class QuizServiceImpl implements QuizService {
             String loggedUserEmail = authTokenFilter.userSessionDetails();
             Users user = usersRepository.findByUsername(loggedUserEmail)
                     .orElseThrow(() -> {
-                        log.error("User with ID {} not found", loggedUserEmail);
+                        log.error("User with email {} not found", loggedUserEmail);
                         return new RuntimeException("User not found");
                     });
 
-            // Award points (3 for correct, -1 for incorrect)
-            int scoreAwarded = isCorrect ? 3 : -1;
+            // Award points (3 for correct, 0 for incorrect)
+            int scoreAwarded = isCorrect ? 3 : 0;
 
             // Update user's score if correct
             if (isCorrect) {
@@ -127,6 +126,9 @@ public class QuizServiceImpl implements QuizService {
                 usersRepository.save(user);
                 log.info("Updated score for user {}: {}", user.getId(), user.getScore());
             }
+
+            // Get the updated total score
+            int totalScore = user.getScore();
 
             // Log the guess
             UserGuesses guess = UserGuesses.builder()
@@ -145,6 +147,7 @@ public class QuizServiceImpl implements QuizService {
                     .isCorrect(isCorrect)
                     .correctPlaceId(correctPlaceId)
                     .scoreAwarded(scoreAwarded)
+                    .userScore(totalScore)
                     .build();
 
         } catch (Exception e) {
@@ -152,6 +155,7 @@ public class QuizServiceImpl implements QuizService {
             throw new RuntimeException("Failed to process submission");
         }
     }
+
 }
 
 

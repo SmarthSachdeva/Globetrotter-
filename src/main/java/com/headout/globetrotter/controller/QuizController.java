@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/quiz")
+@RequestMapping("/api/v1/quiz")
 public class QuizController {
     @Autowired
     private QuizService quizService;
 
-    @GetMapping("/clue")
+    @GetMapping("/getquestion")
     public ResponseEntity<Question> getQuizQuestion() {
         try{
 
@@ -33,7 +33,7 @@ public class QuizController {
         }
     }
 
-    @PostMapping("/submit")
+    @PostMapping("/submitanswer")
     public ResponseEntity<AnswerWithScore> submitAnswer(@RequestBody AnswerSubmission submission) {
         try{
 
