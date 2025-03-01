@@ -58,6 +58,7 @@ public class SecurityConfig {
                         authorize
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow OPTIONS preflight requests
                                 .requestMatchers("/api/v1/users/*", "/api/auth/**").permitAll() // Public endpoints
+                                .requestMatchers("/favicon.ico").permitAll()
                                 .anyRequest().authenticated() // Secure the rest
                 )
                 .exceptionHandling(exception ->
