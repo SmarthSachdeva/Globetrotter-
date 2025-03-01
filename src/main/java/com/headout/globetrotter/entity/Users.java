@@ -5,19 +5,32 @@ import lombok.Data;
 
 import java.util.List;
 
-@Data
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.*;
+
 @Entity
 @Table(name = "users")
-public class Users extends BaseEntity {
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Users extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
-    private Integer score;
+
+    @Column(nullable = false)
+    private Integer score = 0;
 
     @OneToMany(mappedBy = "user")
     private List<UserGuesses> userGuesses;
