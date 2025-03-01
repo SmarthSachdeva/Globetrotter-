@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CluesRepository extends JpaRepository<Clues, Integer> {
 
-    @Query("SELECT c FROM Clue c ORDER BY RANDOM() LIMIT 1")
+    @Query(value = "SELECT * FROM clues ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
     Clues findRandomClue();
 }

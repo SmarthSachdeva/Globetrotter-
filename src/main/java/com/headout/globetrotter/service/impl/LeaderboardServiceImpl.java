@@ -7,10 +7,12 @@ import com.headout.globetrotter.service.LeaderboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class LeaderboardServiceImpl implements LeaderboardService {
     @Autowired
     private UsersRepository userRepository;
@@ -18,7 +20,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     @Override
     public List<Leaderboard> getTopUsers(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        List<Users> topUsers = userRepository.findTopUsers(pageable);
+        List<Users> topUsers = userRepository.findTopByOrderByScoreDesc(pageable);
 
         List<Leaderboard> leaderboard = new ArrayList<>();
         int rank = 1;

@@ -10,6 +10,5 @@ import java.util.List;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Integer> {
-    @Query("SELECT u FROM User u ORDER BY u.score DESC")
-    List<Users> findTopUsers(Pageable pageable);
+    List<Users> findTopByOrderByScoreDesc(Pageable pageable);
 }
