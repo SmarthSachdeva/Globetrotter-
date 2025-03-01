@@ -14,7 +14,9 @@ import com.headout.globetrotter.repository.UserGuessesRepository;
 import com.headout.globetrotter.repository.UsersRepository;
 import com.headout.globetrotter.service.QuizService;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
+@Service
 public class QuizServiceImpl implements QuizService {
 
     @Autowired
@@ -38,84 +42,110 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Question getQuizQuestion() {
-        // Fetch a random clue
-        Clues clue = clueRepository.findRandomClue();
-        if (clue == null) throw new RuntimeException("No clues found");
 
-        // Fetch the correct place
-        Place correctPlace = clue.getPlace();
+        try{
+            log.info("Fetching question initiated");
+            Clues clue = clueRepository.findRandomClue();
 
-        // Fetch 3 random wrong answers
-        List<Place> wrongPlaces = placeRepository.findRandomWrongAnswers(correctPlace.getId());
+            if (clue == null) {
+                throw new RuntimeException("Clue not found");
+            }
+            // Fetch the correct place
+            Place correctPlace = clue.getPlace();
 
-        // Prepare options
-        List<Options> options = new ArrayList<>();
+            // Fetch 3 random wrong answers
+            List<Place> wrongPlaces = placeRepository.findRandomWrongAnswers(correctPlace.getId());
 
-        options.add(Options.builder()
-                        .id(correctPlace.getId())
-                        .name(correctPlace.getName())
-                        .isCorrect(true)
-                        .build());
+            // Prepare options
+            List<Options> options = new ArrayList<>();
 
-        for (Place place : wrongPlaces) {
             options.add(Options.builder()
-                            .id(place.getId())
-                            .name(place.getName())
-                            .isCorrect(false)
-                            .build());
+                    .id(correctPlace.getId())
+                    .name(correctPlace.getName())
+                    .isCorrect(true)
+                    .build());
+
+            for (Place place : wrongPlaces) {
+                options.add(Options.builder()
+                        .id(place.getId())
+                        .name(place.getName())
+                        .isCorrect(false)
+                        .build());
+            }
+
+            // Shuffle options to randomize order
+            Collections.shuffle(options);
+
+            return new Question(clue.getClue(), options);
+
+        } catch (Exception e) {
+            log.error("Error");
+            throw new RuntimeException(e);
         }
-
-        // Shuffle options to randomize order
-        Collections.shuffle(options);
-
-        return new Question(clue.getClue(), options);
     }
 
     @Override
     @Transactional
     public AnswerWithScore submitAnswer(AnswerSubmission submission) {
-        // Fetch clue
-        Clues clue = clueRepository.findById(submission.getClueId())
-                .orElseThrow(() -> new RuntimeException("Clue not found"));
+        try {
+            log.info("Processing submission for user: {} and clue: {}", submission.getUserId(), submission.getClueId());
 
-        // Find correct place from Clue
-        Integer correctPlaceId = clue.getPlace().getId();
+            // Fetch clue
+            Clues clue = clueRepository.findById(submission.getClueId())
+                    .orElseThrow(() -> {
+                        log.error("Clue with ID {} not found", submission.getClueId());
+                        return new RuntimeException("Clue not found");
+                    });
 
-        // Check if user guessed correctly
-        boolean isCorrect = correctPlaceId.equals(submission.getGuessedPlaceId());
+            // Find correct place from Clue
+            Integer correctPlaceId = clue.getPlace().getId();
+            log.info("Correct place for the clue: {}", correctPlaceId);
 
-        // Fetch user
-        Users user = usersRepository.findById(submission.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            // Check if user guessed correctly
+            boolean isCorrect = correctPlaceId.equals(submission.getGuessedPlaceId());
+            log.info("User guessed: {}, Correct: {}", submission.getGuessedPlaceId(), isCorrect);
 
-        // Award points (10 for correct, 0 for incorrect)
-        int scoreAwarded = isCorrect ? 10 : 0;
+            // Fetch user
+            Users user = usersRepository.findById(submission.getUserId())
+                    .orElseThrow(() -> {
+                        log.error("User with ID {} not found", submission.getUserId());
+                        return new RuntimeException("User not found");
+                    });
 
-        // Update user's score
-        if (isCorrect) {
-            user.setScore(user.getScore() + scoreAwarded);
-            usersRepository.save(user);
+            // Award points (3 for correct, -1 for incorrect)
+            int scoreAwarded = isCorrect ? 3 : -1;
+
+            // Update user's score if correct
+            if (isCorrect) {
+                user.setScore(user.getScore() + scoreAwarded);
+                usersRepository.save(user);
+                log.info("Updated score for user {}: {}", user.getId(), user.getScore());
+            }
+
+            // Log the guess
+            UserGuesses guess = UserGuesses.builder()
+                    .user(user)
+                    .place(clue.getPlace())
+                    .guessedPlace(new Place(submission.getGuessedPlaceId()))
+                    .isCorrect(isCorrect)
+                    .score(scoreAwarded)
+                    .guessedAt(new Timestamp(new Date().getTime()))
+                    .build();
+
+            userGuessesRepository.save(guess);
+            log.info("Guess recorded for user {}: {}", user.getId(), guess);
+
+            return AnswerWithScore.builder()
+                    .isCorrect(isCorrect)
+                    .correctPlaceId(correctPlaceId)
+                    .scoreAwarded(scoreAwarded)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error processing submission: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process submission");
         }
-
-        // Log the guess
-        UserGuesses guess = UserGuesses.builder()
-                .user(user)
-                .place(clue.getPlace())
-                .guessedPlace(new Place(submission.getGuessedPlaceId()))
-                .isCorrect(isCorrect)
-                .score(scoreAwarded)
-                .guessedAt(new Timestamp(new Date().getTime()))
-                .build();
-
-        userGuessesRepository.save(guess);
-
-        return AnswerWithScore.builder()
-                       .isCorrect(isCorrect)
-                       .correctPlaceId(correctPlaceId)
-                       .scoreAwarded(scoreAwarded)
-                       .build();
     }
-
 }
 
 
