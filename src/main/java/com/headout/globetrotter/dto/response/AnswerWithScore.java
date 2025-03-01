@@ -10,4 +10,6 @@ public class AnswerWithScore {
     private Integer correctPlaceId;
     private int scoreAwarded;
     private int userScore;
+    private String correctAnswer;
+    private String fact;
 }
