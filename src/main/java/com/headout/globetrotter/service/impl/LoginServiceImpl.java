@@ -27,7 +27,7 @@ public class LoginServiceImpl implements LoginService {
 
         try{
             log.info("Login Request Received for email : {}" , email);
-            Users user = userRepository.findByEmail(email);
+            Users user = userRepository.findByEmail(email).get();
 
             if(user!=null){
                 boolean passwordMatches = BCrypt.checkpw(password, user.getPassword());

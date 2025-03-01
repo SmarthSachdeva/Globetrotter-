@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -39,28 +40,37 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 String userName = jwtUtils.getUserNameFromToken(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
 
+                // Create the authentication token without authorities
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails,
                                 null,
-                                // TODO : Set authorities here just like u did in pricing
-                                userDetails.getAuthorities());
+                                null);
 
-                log.info("Authorities are: {}" , userDetails.getAuthorities());
+                log.info("User authenticated: {}", userName);
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Invalid JWT token : {}", e.getMessage());
         }
 
         filterChain.doFilter(request , response);
     }
 
+
     private String parseJwt(HttpServletRequest request) {
 
         return jwtUtils.getJwtFromHeader(request);
+    }
+
+    public String userSessionDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return ((org.springframework.security.core.userdetails.User) authentication.getPrincipal()).getUsername();
+        }
+        return null;
     }
 
 }

@@ -8,6 +8,8 @@ import com.headout.globetrotter.entity.Clues;
 import com.headout.globetrotter.entity.Place;
 import com.headout.globetrotter.entity.UserGuesses;
 import com.headout.globetrotter.entity.Users;
+import com.headout.globetrotter.jwt.AuthTokenFilter;
+import com.headout.globetrotter.jwt.JwtUtils;
 import com.headout.globetrotter.repository.CluesRepository;
 import com.headout.globetrotter.repository.PlaceRepository;
 import com.headout.globetrotter.repository.UserGuessesRepository;
@@ -39,6 +41,9 @@ public class QuizServiceImpl implements QuizService {
 
     @Autowired
     private PlaceRepository placeRepository;
+
+    @Autowired
+    private AuthTokenFilter authTokenFilter;
 
     @Override
     public Question getQuizQuestion() {
@@ -88,7 +93,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public AnswerWithScore submitAnswer(AnswerSubmission submission) {
         try {
-            log.info("Processing submission for user: {} and clue: {}", submission.getUserId(), submission.getClueId());
+            log.info("****************Processing submission for user: {} and clue: {}", authTokenFilter.userSessionDetails() , submission.getClueId());
 
             // Fetch clue
             Clues clue = clueRepository.findById(submission.getClueId())
@@ -106,9 +111,10 @@ public class QuizServiceImpl implements QuizService {
             log.info("User guessed: {}, Correct: {}", submission.getGuessedPlaceId(), isCorrect);
 
             // Fetch user
-            Users user = usersRepository.findById(submission.getUserId())
+            String loggedUserEmail = authTokenFilter.userSessionDetails();
+            Users user = usersRepository.findByUsername(loggedUserEmail)
                     .orElseThrow(() -> {
-                        log.error("User with ID {} not found", submission.getUserId());
+                        log.error("User with ID {} not found", loggedUserEmail);
                         return new RuntimeException("User not found");
                     });
 

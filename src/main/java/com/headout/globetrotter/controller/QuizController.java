@@ -33,8 +33,6 @@ public class QuizController {
         }
     }
 
-//    todo : replace request-body with request headers
-//    todo : once jwt is implemented user id should come from there
     @PostMapping("/submit")
     public ResponseEntity<AnswerWithScore> submitAnswer(@RequestBody AnswerSubmission submission) {
         try{
