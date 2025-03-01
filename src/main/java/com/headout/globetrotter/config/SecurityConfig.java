@@ -5,6 +5,7 @@ import com.headout.globetrotter.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,54 +25,53 @@ import java.util.List;
 public class SecurityConfig {
 
     @Autowired
-    private  AuthEntryPointJwt authEntryPointJwt;
+    private AuthEntryPointJwt authEntryPointJwt;
 
     @Autowired
     private AuthTokenFilter authTokenFilter;
 
-    // Password encoder for encoding passwords
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // CORS Configuration Bean
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow all origins for now (you can replace "*" with your frontend URL when deploying to production)
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "*"));
+        // Allow only specific frontend origins for security
+        configuration.setAllowedOrigins(List.of("http://localhost:5173" , "*"));  // You can specify production URL here
+        configuration.setAllowCredentials(false);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true); // Allow credentials (cookies, authorization headers, etc.)
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    // Security Filter Chain configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF protection
-                .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests
-                                // Permit all for login and other public APIs
-                                .requestMatchers("/api/v1/users/login", "/api/v1/users/signup", "/api/auth/**").permitAll()
-                                // Secure the rest of the APIs, requiring authentication
-                                .anyRequest().authenticated()
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API requests
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow OPTIONS preflight requests
+                                .requestMatchers("/api/v1/users/*", "/api/auth/**").permitAll() // Public endpoints
+                                .anyRequest().authenticated() // Secure the rest
                 )
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(authEntryPointJwt) // Custom entry point for unauthorized access
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(authEntryPointJwt)
                 )
-                .sessionManagement(sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management for JWT
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless for JWT
                 )
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class) // Adding the custom JWT filter before the default filter
-                .build();
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
-    // AuthenticationManager configuration to manage authentication flow
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
