@@ -10,13 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Integer> {
-    List<Users> findTopByOrderByScoreDesc(Pageable pageable);
+    List<Users> findAllByOrderByScoreDesc(Pageable pageable);
 
     Optional<Users> findByEmail(String email);
 
     Optional<Users> findByUsername(String username);
-//
-//    boolean existsByUsername(String username);
-//
-//    boolean existsByEmail(String email);
 }

@@ -20,19 +20,19 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     @Override
     public List<Leaderboard> getTopUsers(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        List<Users> topUsers = userRepository.findTopByOrderByScoreDesc(pageable);
+        List<Users> topUsers = userRepository.findAllByOrderByScoreDesc(pageable);
 
         List<Leaderboard> leaderboard = new ArrayList<>();
         int rank = 1;
         for (Users user : topUsers) {
             leaderboard.add(Leaderboard.builder()
-                            .rank(rank++)
-                            .userId(user.getId())
-                            .username(user.getUsername())
-                            .score(user.getScore())
+                    .rank(rank++)
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .score(user.getScore())
                     .build());
         }
-
         return leaderboard;
     }
+
 }
