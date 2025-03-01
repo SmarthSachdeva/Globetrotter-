@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/leaderboard")
+@RequestMapping("/api/v1/leaderboard")
 public class LeaderboardController {
     @Autowired
     private LeaderboardService leaderboardService;

@@ -25,7 +25,7 @@ public class AuthController {
     @Autowired
     private SignupService signUpService;
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public ResponseEntity<SignUpResponse> signUp(
             @RequestHeader("username") String userName ,
             @RequestHeader("email") String email ,
@@ -49,23 +49,12 @@ public class AuthController {
 
         SignUpResponse response = signUpService.signUpUser(request);
 
-        if(response.getRegistered()){
+        if(Boolean.TRUE.equals(response.getRegistered())){
             log.info("User with user name {} signed up successfully" ,userName);
-            return new ResponseEntity<>(SignUpResponse.builder()
-                    .email(email)
-                    .message("User registration successful")
-                    .registered(true)
-                    .build()
-                    , HttpStatus.OK);
+            return new ResponseEntity<>(response , HttpStatus.OK);
         }
         log.error("Sign Up failed");
-        return new ResponseEntity<>(SignUpResponse.builder()
-                .email(email)
-                .message("User registration failed")
-                .registered(false)
-                .build()
-                , HttpStatus.BAD_REQUEST);
-
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/login")
@@ -82,8 +71,12 @@ public class AuthController {
                     .build();
             return new ResponseEntity<>(failedLogin, HttpStatus.BAD_REQUEST);
         }
-        LoginResponse successfulLogin = loginService.loginUser(email, password);
+        LoginResponse loginResponse = loginService.loginUser(email, password);
 
-        return new ResponseEntity<>(successfulLogin , HttpStatus.OK);
+        if(loginResponse.getMessage().equals("Incorrect password")){
+            return new ResponseEntity<>(loginResponse , HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>(loginResponse , HttpStatus.OK);
     }
 }

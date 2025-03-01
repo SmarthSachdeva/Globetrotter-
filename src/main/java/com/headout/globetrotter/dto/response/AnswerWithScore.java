@@ -9,4 +9,5 @@ public class AnswerWithScore {
     private boolean isCorrect;
     private Integer correctPlaceId;
     private int scoreAwarded;
+    private int userScore;
 }

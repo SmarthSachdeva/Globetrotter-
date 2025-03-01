@@ -36,7 +36,7 @@ public class SignupServiceImpl implements SignupService {
             }
 
             // Check if email or username already exists
-            if (userRepository.findByEmail(request.getEmail()) != null) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 log.warn("User already exists with email: {}", request.getEmail());
                 return SignUpResponse.builder()
                         .message("User already exists with this email")

@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class Question {
+    private Integer clueId;  // Add this field
     private String clue;
     private List<Options> options;
 }
