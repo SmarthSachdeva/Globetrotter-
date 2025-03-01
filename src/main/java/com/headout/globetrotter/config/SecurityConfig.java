@@ -30,23 +30,24 @@ public class SecurityConfig {
 
     // Security Filter Chain configuration
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()).authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests
-                                .requestMatchers("/api/v1/users/*", "/api/auth/**").permitAll() // Allow public access to these endpoints
-                                .anyRequest().authenticated() // Any other request should be authenticated
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/v1/users/*", "/api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/addfriend/user/*/score").permitAll()
+                        .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(authEntryPointJwt) // Custom entry point for unauthorized access
+                        exceptionHandling.authenticationEntryPoint(authEntryPointJwt)
                 )
                 .sessionManagement(sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management for JWT
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class) // Adding the custom JWT filter before the default filter
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
 
     // AuthenticationManager configuration to manage authentication flow
     @Bean
