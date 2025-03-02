@@ -38,11 +38,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://globe-trotter-fe-ornd.vercel.app")); // Allow your frontend domain
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow necessary HTTP methods
-        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization")); // Allow headers like Content-Type and Authorization
-        configuration.setExposedHeaders(List.of("Authorization")); // Expose specific headers if needed
-        configuration.setAllowCredentials(true);  // Allow credentials (cookies, headers, etc.)
+        configuration.setAllowedOrigins(List.of("https://globe-trotter-fe-ornd.vercel.app"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "password", "username")); // Added password and username
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -72,7 +72,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
