@@ -38,11 +38,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));  // Allow all methods
-        configuration.setAllowedHeaders(List.of("*"));  // Allow all headers
-        configuration.setExposedHeaders(List.of("*"));  // Expose all headers
-        configuration.setAllowCredentials(false);
+        configuration.setAllowedOrigins(List.of("https://globe-trotter-fe-ornd.vercel.app" , "https://headout-globetrotter.netlify.app/" ,
+                "http://headout-globetrotter.netlify.app/" ,"http://globe-trotter-fe-ornd.vercel.app" , "*" )); // Specify the frontend URL
+        configuration.setAllowedMethods(List.of("*")); // Allow all methods
+        configuration.setAllowedHeaders(List.of("*")); // Allow all headers
+        configuration.setExposedHeaders(List.of("*")); // Expose all headers
+        configuration.setAllowCredentials(true); // Allow credentials (cookies, headers, etc.)
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
