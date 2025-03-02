@@ -32,19 +32,24 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("AuthTokenFilter called for URI : {}" , request.getRequestURI());
+        String uri = request.getRequestURI();
+        log.info("AuthTokenFilter called for URI : {}", uri);
+
+        // Skip filter for login endpoint
+        if (uri.startsWith("/api/v1/users/login") || uri.startsWith("/api/v1/users/signup")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String jwtToken = parseJwt(request);
-            if(jwtToken != null && jwtUtils.validateToken(jwtToken)){
+            if (jwtToken != null && jwtUtils.validateToken(jwtToken)) {
                 String userName = jwtUtils.getUserNameFromToken(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
 
                 // Create the authentication token without authorities
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails,
-                                null,
-                                null);
+                        new UsernamePasswordAuthenticationToken(userDetails, null, null);
 
                 log.info("User authenticated: {}", userName);
 
@@ -56,9 +61,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             log.error("Invalid JWT token : {}", e.getMessage());
         }
 
-        filterChain.doFilter(request , response);
+        filterChain.doFilter(request, response);
     }
-
 
     private String parseJwt(HttpServletRequest request) {
 
