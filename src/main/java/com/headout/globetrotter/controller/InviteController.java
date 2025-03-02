@@ -32,7 +32,7 @@ public class InviteController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             // Generate invite link
-            String inviteLink = Constants.INVITE_LINK + username;
+            String inviteLink = Constants.INVITE_LINK ;
             log.info("Generated invite link: {}", inviteLink);
 
             return ResponseEntity.ok(new InviteResponse(inviteLink, user.getScore()));
