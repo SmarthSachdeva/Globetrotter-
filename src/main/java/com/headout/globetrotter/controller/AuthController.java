@@ -1,5 +1,6 @@
 package com.headout.globetrotter.controller;
 
+import com.headout.globetrotter.dto.request.LoginRequest;
 import com.headout.globetrotter.dto.request.SignUpRequest;
 import com.headout.globetrotter.dto.response.LoginResponse;
 import com.headout.globetrotter.dto.response.SignUpResponse;
@@ -9,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -27,10 +25,12 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponse> signUp(
-            @RequestHeader("username") String userName ,
-            @RequestHeader("email") String email ,
-            @RequestHeader("password") String password
+            @RequestBody SignUpRequest request
     ){
+        String userName = request.getUsername();
+        String email = request.getEmail();
+        String password = request.getPassword();
+
         log.info("Sign Up Request Received for user : {}" ,userName);
         if(userName == null || email == null || password == null){
             log.error("Incomplete User details");
@@ -41,12 +41,6 @@ public class AuthController {
                     .build()
                     , HttpStatus.BAD_REQUEST);
         }
-        SignUpRequest request = SignUpRequest.builder()
-                .email(email)
-                .password(password)
-                .username(userName)
-                .build();
-
         SignUpResponse response = signUpService.signUpUser(request);
 
         if(Boolean.TRUE.equals(response.getRegistered())){
@@ -59,10 +53,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestHeader("email") String email ,
-            @RequestHeader("password") String password
+            @RequestBody LoginRequest loginRequest
     ) {
 
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
         if(email == null || password == null) {
             LoginResponse failedLogin = LoginResponse.builder()
                     .email(email)
